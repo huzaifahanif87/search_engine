@@ -18,5 +18,5 @@ def create_backward_index(forward_index_file="indexes/forward_index.pkl", output
     print(f"Backward index created and saved to {output_file}.")
 
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     create_backward_index()
