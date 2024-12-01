@@ -47,6 +47,6 @@ def create_forward_index(csv_file, lexicon_file="data/lexicon.txt", output_file=
     print(f"Forward index created and saved to {output_file}.")
 
 
-if _name_ == "_main_":
-    csv_file = r"data/sampleData.csv"  # Put the correct path as needed
+if __name__ == "__main__":
+    csv_file = r"data/sampleData.csv"  # Put whatever the correct path as needed
     create_forward_index(csv_file)
