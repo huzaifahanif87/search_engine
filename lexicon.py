@@ -3,6 +3,7 @@ import pandas as pd
 import spacy
 import os
 from concurrent.futures import ProcessPoolExecutor
+from rapidfuzz import fuzz, process
 
 class Lexicon:
     def __init__(self, lexicon_file="data/lexicon.txt"):
@@ -15,7 +16,14 @@ class Lexicon:
 
     def get_index(self, word):
         return self.word_to_id.get(word)  
-
+    
+    def approximate_match(self, query_word, threshold=80):
+            """Find the closest matching word in the lexicon."""
+            best_match = process.extractOne(query_word, self.words, scorer=fuzz.ratio)
+            if best_match and best_match[1] >= threshold:
+                return best_match[0]  # Return the closest match
+            return None  # No close match found
+    
     def load_from_file(self):
         if os.path.exists(self.lexicon_file):
             with open(self.lexicon_file, "r", encoding="utf-8") as lex_file:
@@ -33,13 +41,16 @@ class Lexicon:
             for idx, word in enumerate(sorted(self.words)):  # Sort for consistency
                 self.word_to_id[word] = idx
                 lex_file.write(f"{idx}:{word}\n")
+    def get_all_words(self):
+            """Return all words in the lexicon."""
+            return self.words
 
-
-def tokenize_and_filter(text, nlp, stop_words):
-    """Tokenize, lemmatize, and filter text using spaCy."""
+def tokenize_and_filter(text, nlp):
+    """Tokenize and lemmatize text using spaCy, including all words."""
     doc = nlp(text.lower())
-    # Use lemma_ to get base words, and filter stop words
-    return [token.lemma_ for token in doc if token.is_alpha and token.lemma_ not in stop_words]
+    # Use lemma_ to get base words (including stopwords)
+    return [token.lemma_ for token in doc if token.is_alpha]  # Return lemmas of all alphabetic tokens
+
 
 
 def process_csv_chunk(chunk, columns, nlp, stop_words):
@@ -52,18 +63,18 @@ def process_csv_chunk(chunk, columns, nlp, stop_words):
             )
     return unique_words
 
+
 def process_csv_to_lexicon(csv_file, lexicon, columns, chunk_size=10000):
     """Process the CSV file in chunks to build the lexicon."""
     nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])  # Load spaCy model
-    stop_words = nlp.Defaults.stop_words
 
-    # Read CSV in chunks and process in parallel
+    # Read CSV in chunks and process
     max_workers = os.cpu_count()  # Use maximum available CPU cores
     print(f"Using {max_workers} workers for processing.")
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
         futures = []
         for chunk in pd.read_csv(csv_file, encoding="ISO-8859-1", chunksize=chunk_size):
-            futures.append(executor.submit(process_csv_chunk, chunk, columns, nlp, stop_words))
+            futures.append(executor.submit(process_csv_chunk, chunk, columns, nlp))
 
         # Collect results from all futures
         for future in futures:

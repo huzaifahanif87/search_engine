@@ -1,7 +1,3 @@
-
-
-
-
 import pickle
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
@@ -11,6 +7,7 @@ class BackwardIndex:
         self.forward_index_file = forward_index_file
         self.output_file = output_file
         self.forward_index = None
+        # Initialize the backward_index using the method `default_word_dict`
         self.backward_index = defaultdict(self.default_word_dict)
 
     def default_doc_dict(self):
@@ -50,12 +47,20 @@ class BackwardIndex:
         """
         for partial_index in indexes:
             for word_id, doc_data in partial_index.items():
-                for doc_id, details in doc_data.items():
-                    # Extend positions
-                    self.backward_index[word_id][doc_id]["positions"].extend(details["positions"])
-                    # Add term frequencies
-                    self.backward_index[word_id][doc_id]["tf"] += details["tf"]
+                # Ensure backward_index[word_id] is a defaultdict for doc_id -> {positions, tf}
+                if word_id not in self.backward_index:
+                    self.backward_index[word_id] = self.default_word_dict()  # Use self.default_word_dict()
 
+                for doc_id, details in doc_data.items():
+                    # Ensure doc_id exists in the backward index for word_id
+                    if doc_id not in self.backward_index[word_id]:
+                        # Initialize with positions and tf
+                        self.backward_index[word_id][doc_id] = self.default_doc_dict()
+
+                    # Merge positions and tf values
+                    self.backward_index[word_id][doc_id]["positions"].extend(details["positions"])
+                    self.backward_index[word_id][doc_id]["tf"] += details["tf"]
+        self.backward_index = dict(sorted(self.backward_index.items()))
     def create_backward_index(self, chunk_size=1000):
         """
         Create a backward index using multi-threading.
@@ -109,8 +114,8 @@ if __name__ == "__main__":
     backward_indexer = BackwardIndex()
     
     # Create the backward index from forward index
-    # backward_indexer.create_backward_index()
+    backward_indexer.create_backward_index()
 
     # Load the backward index (if saved) and print it
-    backward_indexer.load_backward_index()
-    backward_indexer.print_backward_index()
+    # backward_indexer.load_backward_index()
+    # backward_indexer.print_backward_index()
