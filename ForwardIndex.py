@@ -13,7 +13,7 @@ def default_forward_index():
     return {"words": [], "tf": defaultdict(int)}
 
 class ForwardIndex:
-    def __init__(self, csv_file, lexicon_file, output_file="indexes/stopword_forwardindex.pkl", chunk_size=1000):
+    def __init__(self, csv_file, lexicon_file, output_file="indexes/forwardindex.pkl", chunk_size=2000):
         self.csv_file = csv_file
         self.lexicon_file = lexicon_file
         self.output_file = output_file
@@ -29,15 +29,15 @@ class ForwardIndex:
         
         # Column-specific weights
         column_weights = {
-            "title": 3,  # Title column gets a weight of 3
-            "url": 2,    # URL column gets a weight of 2
+            "title": 4,  # Title column gets a weight of 3
+            "url": 3,    # URL column gets a weight of 2
             "description": 2,  # Description column gets a weight of 2
-            # "content": 1,  # Content column gets a weight of 1
-            # "full_content": 1,  # Full content column gets a weight of 1
+            "content": 1,  # Content column gets a weight of 1
+            "full_content": 1,  # Full content column gets a weight of 1
         }
 
         for doc_id, row in chunk.iterrows():
-            for col in [ "url",  "description", "title"]:  # Process columns of interest
+            for col in [ "url",  "description", "title","content", "full_content"]:  # Process columns of interest
                 if pd.notna(row[col]):
                     words = [token.lemma_ for token in self.nlp(row[col].lower()) if token.is_alpha]
                     weight = column_weights.get(col, 1)  # Get the weight based on the column, default is 1

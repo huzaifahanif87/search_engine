@@ -1,4 +1,3 @@
-
 import pandas as pd
 import spacy
 import os
@@ -18,11 +17,11 @@ class Lexicon:
         return self.word_to_id.get(word)  
     
     def approximate_match(self, query_word, threshold=80):
-            """Find the closest matching word in the lexicon."""
-            best_match = process.extractOne(query_word, self.words, scorer=fuzz.ratio)
-            if best_match and best_match[1] >= threshold:
-                return best_match[0]  # Return the closest match
-            return None  # No close match found
+        """Find the closest matching word in the lexicon."""
+        best_match = process.extractOne(query_word, self.words, scorer=fuzz.ratio)
+        if best_match and best_match[1] >= threshold:
+            return best_match[0]  # Return the closest match
+        return None  # No close match found
     
     def load_from_file(self):
         if os.path.exists(self.lexicon_file):
@@ -38,12 +37,25 @@ class Lexicon:
         if not os.path.exists(os.path.dirname(self.lexicon_file)):
             os.makedirs(os.path.dirname(self.lexicon_file))
         with open(self.lexicon_file, "w", encoding="utf-8") as lex_file:
+            # Save words first
             for idx, word in enumerate(sorted(self.words)):  # Sort for consistency
                 self.word_to_id[word] = idx
                 lex_file.write(f"{idx}:{word}\n")
+            
+            # Save stop words at the end
+            stop_word_offset = len(self.words)
+            for idx, stop_word in enumerate(sorted(self.stop_words)):
+                self.word_to_id[stop_word] = stop_word_offset + idx
+                lex_file.write(f"{stop_word_offset + idx}:{stop_word}\n")
+
     def get_all_words(self):
-            """Return all words in the lexicon."""
-            return self.words
+        """Return all words in the lexicon."""
+        return self.words
+    
+    def add_stop_words(self, stop_words):
+        """Add stop words to the lexicon."""
+        self.stop_words = stop_words
+
 
 def tokenize_and_filter(text, nlp):
     """Tokenize and lemmatize text using spaCy, including all words."""
@@ -52,21 +64,25 @@ def tokenize_and_filter(text, nlp):
     return [token.lemma_ for token in doc if token.is_alpha]  # Return lemmas of all alphabetic tokens
 
 
-
 def process_csv_chunk(chunk, columns, nlp, stop_words):
     """Process a chunk of the CSV and return unique lemmatized words."""
     unique_words = set()
     for column in columns:
         if column in chunk.columns:
             chunk[column].dropna().apply(
-                lambda text: unique_words.update(tokenize_and_filter(text, nlp, stop_words))
+                lambda text: unique_words.update(tokenize_and_filter(text, nlp))  # Remove stop_words argument here
             )
     return unique_words
+
 
 
 def process_csv_to_lexicon(csv_file, lexicon, columns, chunk_size=10000):
     """Process the CSV file in chunks to build the lexicon."""
     nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])  # Load spaCy model
+
+    # Collect stop words from spaCy model
+    stop_words = nlp.Defaults.stop_words
+    lexicon.add_stop_words(stop_words)
 
     # Read CSV in chunks and process
     max_workers = os.cpu_count()  # Use maximum available CPU cores
@@ -74,20 +90,18 @@ def process_csv_to_lexicon(csv_file, lexicon, columns, chunk_size=10000):
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
         futures = []
         for chunk in pd.read_csv(csv_file, encoding="ISO-8859-1", chunksize=chunk_size):
-            futures.append(executor.submit(process_csv_chunk, chunk, columns, nlp))
+            futures.append(executor.submit(process_csv_chunk, chunk, columns, nlp, stop_words))
 
         # Collect results from all futures
         for future in futures:
             lexicon.add_words(future.result())
-
-
 
 if __name__ == "__main__":
     # Path to the CSV file
     csv_file = r"data/sfiftydata.csv"  # Update the path to your dataset
 
     # Columns to process
-    columns_to_process = ["full_content", "content"]
+    columns_to_process = ["full_content", "content", "title","description","url"]  # Make sure the 'title' column is properly quoted
 
     # Create a Lexicon instance
     lexicon = Lexicon()
@@ -95,10 +109,7 @@ if __name__ == "__main__":
     # Process the CSV file and build the lexicon
     process_csv_to_lexicon(csv_file, lexicon, columns_to_process)
 
-    # Save the lexicon
+    # Save the lexicon (including stop words at the end)
     lexicon.save_to_file()
 
-    print("Lexicon with lemmatized words created and saved successfully!")
-
-
-
+    print("Lexicon with lemmatized words and stop words created and saved successfully!")

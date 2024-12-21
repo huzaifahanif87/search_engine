@@ -7,7 +7,7 @@ from BackwardIndex import BackwardIndex
 
 
 class BackwardIndexBarrelizer:
-    def __init__(self, backward_index_file="indexes/backward_index.pkl", output_dir="backward_barrels", words_per_barrel=5000):
+    def __init__(self, backward_index_file="indexes/backwardindex.pkl", output_dir="backward_barrels", words_per_barrel=5000):
         self.backward_index_file = backward_index_file
         self.output_dir = output_dir
         self.words_per_barrel = words_per_barrel
@@ -90,5 +90,5 @@ if __name__ == "__main__":
     backward_indexer.create_backward_index()
 
     # Step 2: Create barrels from the backward index
-    barrelizer = BackwardIndexBarrelizer(backward_index_file="indexes/backward_index.pkl")
+    barrelizer = BackwardIndexBarrelizer(backward_index_file="indexes/backwardindex.pkl")
     barrelizer.create_barrels()

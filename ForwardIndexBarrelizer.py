@@ -8,7 +8,7 @@ from math import log
 from ForwardIndex import ForwardIndex
 
 class ForwardIndexBarrelizer:
-    def __init__(self, forward_index_file="indexes/forward_index.pkl", output_dir="forward_barrels", docs_per_barrel=5000):
+    def __init__(self, forward_index_file="indexes/forwardindex.pkl", output_dir="forward_barrels", docs_per_barrel=5000):
         self.forward_index_file = forward_index_file
         self.output_dir = output_dir
         self.docs_per_barrel = docs_per_barrel
@@ -91,5 +91,5 @@ if __name__ == "__main__":
     forward_indexer.create_forward_index()  # Step 1: Create forward index
 
     # Step 2: Create barrels from the forward index
-    barrelizer = ForwardIndexBarrelizer(forward_index_file="indexes/forward_index.pkl")
+    barrelizer = ForwardIndexBarrelizer(forward_index_file="indexes/forwardindex.pkl")
     barrelizer.create_barrels()

@@ -16,7 +16,7 @@ class RankingSystem:
         self.barrels = self.load_all_barrels()
 
         # Set a fixed total number of documents
-        self.total_docs = 6000
+        self.total_docs = 50000
 
         # Define credibility scores for trusted sources
         self.source_credibility = {
@@ -51,51 +51,57 @@ class RankingSystem:
         with open(self.documents_data_file, "rb") as f:
             return pickle.load(f)
 
+
     def rank_documents(self, query_term_ids):
-        """Rank documents based on the query term IDs, using barrel-specific searches."""
-        # Debugging: Print term IDs for the query
-        print(f"Query Term IDs: {query_term_ids}")
+        """Rank documents based on the query term IDs using multiple heaps for better prioritization."""
+        # Dictionary to store heaps based on the number of query terms matched
+        term_match_heaps = {i: [] for i in range(1, len(query_term_ids) + 1)}
 
         relevant_docs = {}
 
-        # Search only in the relevant barrels
+        # Collect document information
         for word_id in query_term_ids:
-            barrel_id = word_id // self.words_per_barrel  # Determine the corresponding barrel
-            if barrel_id in self.barrels and word_id in self.barrels[barrel_id]:
-                for doc_id, doc_info in self.barrels[barrel_id][word_id].items():
-                    if doc_id not in relevant_docs:
-                        relevant_docs[doc_id] = {"tf_idf": 0, "positions": []}
-                    relevant_docs[doc_id]["tf_idf"] += doc_info.get("tfidf", 0)
-                    relevant_docs[doc_id]["positions"].append(doc_info["positions"])
+            for barrel_id, barrel_data in self.barrels.items():
+                if word_id in barrel_data:
+                    for doc_id, doc_info in barrel_data[word_id].items():
+                        if doc_id not in relevant_docs:
+                            relevant_docs[doc_id] = {
+                                "tf_idf": 0,
+                                "term_hits": set(),
+                                "positions": []
+                            }
+                        relevant_docs[doc_id]["tf_idf"] += doc_info.get("tfidf", 0)
+                        relevant_docs[doc_id]["term_hits"].add(word_id)
+                        relevant_docs[doc_id]["positions"].append(doc_info["positions"])
 
-        # Rank documents
-        heap = []
+        # Place documents into appropriate heaps
         for doc_id, data in relevant_docs.items():
-            # Calculate proximity score
-            proximity_score = self.calculate_proximity_score(query_term_ids, data["positions"])
-            score = data["tf_idf"] * proximity_score
+            matched_terms = len(data["term_hits"])  # Number of query terms matched
+            if matched_terms > 0:
+                # Calculate proximity score
+                proximity_score = self.calculate_proximity_score(query_term_ids, data["positions"])
 
-            # Retrieve additional document details
-            doc_details = self.documents_data.get(doc_id, {})
-            source_name = doc_details.get("source_name", "unknown")
+                # Final score includes tf-idf and proximity
+                score = data["tf_idf"] * proximity_score
 
-            # Apply source credibility score
-            credibility_score = self.calculate_credibility_score(source_name)
-            score += credibility_score
+                # Retrieve document details for source credibility
+                doc_details = self.documents_data.get(doc_id, {})
+                source_name = doc_details.get("source_name", "unknown")
+                credibility_score = self.calculate_credibility_score(source_name)
+                score += credibility_score
 
-            # Add to heap for sorting
-            heapq.heappush(heap, (-score, doc_id))  # Use negative score for max-heap
+                # Push to the appropriate heap
+                heapq.heappush(term_match_heaps[matched_terms], (-score, doc_id))
 
-        # Extract sorted results
+        # Combine heaps, prioritizing higher match counts
         ranked_docs = []
-        while heap:
-            _, doc_id = heapq.heappop(heap)
-            ranked_docs.append(doc_id)
-
-        # Debugging: Print ranked documents
-        print(f"Ranked Docs: {ranked_docs}")
+        for i in range(len(query_term_ids), 0, -1):  # Start from the heap with the most matches
+            while term_match_heaps[i]:
+                _, doc_id = heapq.heappop(term_match_heaps[i])
+                ranked_docs.append(doc_id)
 
         return ranked_docs
+
 
 
     def calculate_proximity_score(self, query_term_ids, word_positions):
