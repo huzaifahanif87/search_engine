@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search App</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com/">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="themeSwitcher" class="theme-switcher">🌙</div>
+
+    <div class="search-container">
+        <img style="width: 200px;" src="/static/logo.png" alt="logo">
+        <input type="text" id="searchInput" placeholder="Enter your search query...">
+    </div>
+
+    <!-- <div id="tabsContainer" class="tabs-container hidden">
+        <button id="documentsTab" class="tab active">Documents</button>
+        <button id="imagesTab" class="tab">Images</button>
+    </div> -->
+    <nav id="tabsNavbar" class="navbar hidden">
+        <ul>
+            <li id="documentsTab" class="tab active">Documents</li>
+            <li id="imagesTab" class="tab">Images</li>
+        </ul>
+    </nav>
+
+
+    <div id="results" class="results-container">
+        <div id="documentsList" class="results-list"></div>
+        <div id="imagesGrid" class="images-grid" style="display: none;"></div>
+    </div>
+
+    <div id="paginationControls" class="hidden">
+        <button id="prevPage" onclick="changePage('prev')">Previous</button>
+        <span id="pageInfo"></span>
+        <button id="nextPage" onclick="changePage('next')">Next</button>
+    </div>
+    <script src="/static/app.js"></script>
+</body>
+
+</html>

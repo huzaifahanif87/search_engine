@@ -1,0 +1,307 @@
+
+:root {
+    --primary-color: #007bff;
+    --primary-hover: #0056b3;
+    --background-light: #aac8e7;
+    --background-dark: #26161c;
+    --text-light: #fff;
+    --text-dark: #333;
+}
+.search-container img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 20px auto;
+}
+
+.dark-theme {
+    background-color: var(--background-dark);
+    color: var(--text-light);
+}
+
+.dark-theme .tab,
+.dark-theme .results-list li,
+.dark-theme .image-item p,
+.dark-theme #searchInput,
+.dark-theme #searchBtn {
+    color: var(--text-dark); /* Ensure text is light */
+}
+
+.dark-theme .results-list li {
+    background-color: var(--text-dark); /* Darken background for contrast */
+}
+
+
+.dark-theme a {
+    color: var(--text-light);
+}
+.dark-theme .results-list li {
+    background-color: #333; /* Dark background for list items */
+    color: var(--text-light); /* Light text for readability */
+}
+
+.dark-theme .results-list li a {
+    color: var(--text-light); /* Ensure links are light */
+}
+.dark-theme .images-grid{
+    background-color: #222;
+}
+
+.dark-theme .results-list li a:hover {
+    text-decoration: underline;
+}
+
+/* Ensure headings are light in dark mode */
+.dark-theme h1 {
+    color: var(--text-light);
+}
+
+/* Adjust text color in paragraphs inside images */
+.dark-theme .image-item p {
+    color: var(--text-light); /* Light text for paragraphs inside images */
+}
+
+/* Image container adjustments */
+.dark-theme .image-item {
+    background-color: var(--background-dark); /* Dark background for image items */
+    box-shadow: 0 2px 6px rgba(255, 255, 255, 0.1); /* Subtle shadow for dark mode */
+}
+
+/* Image border adjustment */
+.dark-theme .image-item img {
+    border: 1px solid #555; /* Lighter border for dark mode */
+    background-color: #222; /* Dark background behind the image */
+}
+
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+    background-color: var(--background-light);
+    color: var(--text-dark);
+    margin: 0;
+    padding: 0;
+    transition: background-color 0.3s ease;
+}
+
+h1 {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.search-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 50px;
+}
+
+#searchInput {
+    padding: 15px;
+    width: 350px;
+    margin-top: 20px;
+    border: 1px solid #ccc;
+    border-radius: 25px;
+    font-size: 18px;
+    transition: width 0.3s ease, border-color 0.3s ease;
+}
+#searchInput:hover {
+    outline: none;
+    border-color: var(--primary-color);
+    width: 400px;
+}
+#searchInput:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    width: 400px;
+}
+
+.tabs-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+.dark-theme .tab{
+    background-color: #ced9e5;
+}
+.tab {
+    padding: 10px;
+    cursor: pointer;
+    margin: 0;
+    width: 640px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #8ec2fa;
+    transition: background-color 0.3s;
+}
+
+.tab.active {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+}
+
+.tab:hover {
+    background-color: #e0e0e0;
+}
+
+
+.results-list, .images-grid {
+    margin-top: 20px;
+}
+
+.results-list li, .images-grid div {
+    border-radius: 10px;
+    background-color: #8ec2fa;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.hidden {
+    display: none;
+}
+
+.results-list li {
+    background-color: #c9def8;
+    padding: 15px;
+    margin-bottom: 10px;
+}
+
+.results-list li a {
+    font-size: 20px;
+    color: var(--text-dark);
+    text-decoration: none;
+}
+
+.results-list li a:hover {
+    text-decoration: underline;
+}
+
+
+.theme-switcher {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+.dark-theme {
+    background-color: var(--background-dark);
+    color: var(--text-light);
+}
+.images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #c1e1e2;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.image-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.image-item img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    background-color: #f4f4f4;
+}
+
+.image-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.image-item a {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s ease;
+}
+
+.image-item a:hover {
+    transform: scale(1.05);
+    text-decoration: none;
+}
+
+.image-item p {
+    font-size: 14px;
+    color: #333;
+    margin: 0;
+}
+#searchResultsContainer {
+    width: 80%;
+    margin: 0 auto;
+    padding: 20px;
+}
+.flex{
+    display: flex;
+}
+#paginationControls {
+    /* display: flex; */
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 0 10px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+#pageInfo {
+    font-size: 18px;
+} 
+
+/* Navbar styles */
+.navbar {
+    justify-content: center;
+    padding: 10px 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    margin: 20px 0;
+}
+
+.navbar ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar li {
+    cursor: pointer;
+    color: white;
+    font-size: 18px;
+    font-weight: 500;
+    border-radius: 3px;
+    transition: background-color 0.3s ease;
+}
+
+.navbar li.active {
+    background-color: var(--primary-hover);
+}
+
+.navbar li:hover {
+    background-color: var(--primary-hover);
+}
