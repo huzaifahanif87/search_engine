@@ -24,7 +24,7 @@
 .dark-theme .image-item p,
 .dark-theme #searchInput,
 .dark-theme #searchBtn {
-    color: var(--text-dark); /* Ensure text is light */
+    color: var(--text-dark); 
 }
 
 .dark-theme .results-list li {
@@ -93,6 +93,10 @@ h1 {
     flex-direction: column;
     align-items: center;
     margin-top: 50px;
+}
+.dark-theme #searchInput{
+    background-color: #26161c;
+    color: #c1e1e2;
 }
 
 #searchInput {
@@ -304,4 +308,15 @@ button:hover {
 
 .navbar li:hover {
     background-color: var(--primary-hover);
+}
+
+.no-results-message {
+    text-align: center;
+    font-size: 1.2em;
+    color: #666;
+    margin: 20px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+    border-radius: 5px;
 }

@@ -20,47 +20,36 @@ class QueryProcessor:
     def simplify_repeated_characters(self, term):
         """Simplify repeated characters to a base form, e.g., 'gazaaaaaaaaaaaa' -> 'gaza'."""
         return re.sub(r'(.)\1{2,}', r'\1', term)  # Replace three or more repeated characters with a single one
-
-    # def split_compound_term(self, term):
-    #     """Split compound terms like 'imrankhan' into 'imran' and 'khan'."""
-    #     all_words = set(self.lexicon.get_all_words())  # Get all lexicon words
-
-    #     # Prioritize finding the longest match first
-    #     matches = []
-    #     for i in range(1, len(term)):
-    #         part1, part2 = term[:i], term[i:]
-    #         if part1 in all_words and part2 in all_words:
-    #             matches.append((part1, part2))
-
-    #     # Instead of simply splitting, we now try matching "imra" with "imran"
-    #     if not matches:
-    #         possible_matches = [word for word in all_words if term in word]  # Find substrings in longer words
-    #         matches.extend([(term, match) for match in possible_matches if term in match])
-
-    #     return matches
-    def split_compound_term(self, term):
-        """Split compound terms into known lexicon words."""
-        all_words = set(self.lexicon.get_all_words())  # Get all lexicon words
+    def split_compound_term(self, term, threshold=85):
+        """Split compound terms into known lexicon words with approximate matching."""
+        all_words = list(self.lexicon.get_all_words())  # Get all lexicon words
         matches = []
 
         # Try splitting the term at every possible position
         for i in range(1, len(term)):
             part1, part2 = term[:i], term[i:]
-            
-            # Check if both parts are valid words in the lexicon
-            if part1 in all_words and part2 in all_words:
-                matches.append((part1, part2))
-        
-        # If no exact match found, try for compound matches
-        if not matches:
-            for i in range(1, len(term)):
-                part1 = term[:i]
-                if part1 in all_words:
-                    part2 = term[i:]
-                    if part2 in all_words:  # Check if second part is also a word
-                        matches.append((part1, part2))
+
+            # Find approximate matches for both parts
+            part1_matches = process.extract(part1, all_words, scorer=fuzz.ratio, limit=1)
+            part2_matches = process.extract(part2, all_words, scorer=fuzz.ratio, limit=1)
+
+            # Check if both parts have a high-scoring match
+            if part1_matches and part1_matches[0][1] >= threshold:
+                part1_match = part1_matches[0][0]
+            else:
+                part1_match = None
+
+            if part2_matches and part2_matches[0][1] >= threshold:
+                part2_match = part2_matches[0][0]
+            else:
+                part2_match = None
+
+            # If both parts have valid matches, add to results
+            if part1_match and part2_match:
+                matches.append((part1_match, part2_match))
 
         return matches
+
 
     def generate_combinations(self, term, max_combinations=500):
         """Generate character combinations for a term, with a limit for performance."""
@@ -107,7 +96,7 @@ class QueryProcessor:
                     print(f"Prefix matches for '{simplified_term}': {prefix_matches}")
                     query_term_ids.extend(self.lexicon.get_index(match) for match in prefix_matches if self.lexicon.get_index(match))
 
-                # Handle compound terms (like "imrankhan" -> "imran" and "khan")
+               # Handle compound terms (like "imrankhan" -> "imran" and "khan")
                 compound_matches = self.split_compound_term(simplified_term)
                 if compound_matches:
                     print(f"Compound matches for '{simplified_term}': {compound_matches}")
@@ -130,11 +119,6 @@ class QueryProcessor:
                         print(f"Approximate matches for '{simplified_term}': {approx_matches}")
                         query_term_ids.extend(self.lexicon.get_index(match) for match in approx_matches if self.lexicon.get_index(match))
 
-                    # If no matches found, check for prefix matches (for cases like "imra" to "imran")
-                    # prefix_matches = self.find_prefix_matches(simplified_term)
-                    # if prefix_matches:
-                    #     print(f"Prefix matches for '{simplified_term}': {prefix_matches}")
-                    #     query_term_ids.extend(self.lexicon.get_index(match) for match in prefix_matches if self.lexicon.get_index(match))
 
         # Return term IDs and status
         if query_term_ids:

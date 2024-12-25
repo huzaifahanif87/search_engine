@@ -11,33 +11,8 @@ document.getElementById('searchInput').addEventListener('keydown', function (eve
         fetchResults(query, currentPage);
     }
 });
-// function fetchResults(query, page) {
-//     fetch('/search', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({ query, page })
-//     })
-//         .then(response => response.json())
-//         .then(data => {
-//             if (data.status === 'success') {
-//                 displayResults(data.results);
-//                 updatePaginationControls(data.total_pages, data.current_page);
-
-//                 // Show tabs and pagination controls after the search
-//                 document.getElementById('tabsContainer').classList.remove('hidden');
-//                 document.getElementById('paginationControls').classList.remove('hidden');
-//                 document.getElementById('paginationControls').classList.add('flex');
-//             } else {
-//                 alert(data.message || 'No results found.');
-//             }
-//         })
-//         .catch(error => {
-//             console.error('Error during fetch:', error);
-//             alert('An error occurred. Please try again later.');
-//         });
-// }
-
 function fetchResults(query, page) {
+    const startTime = performance.now();
     fetch('/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -45,16 +20,18 @@ function fetchResults(query, page) {
     })
         .then(response => response.json())
         .then(data => {
+            const endTime = performance.now(); // Capture the end time
+            const elapsedTime = ((endTime - startTime) / 1000).toFixed(4); // Calculate elapsed time in seconds
             if (data.status === 'success') {
                 displayResults(data.results);
                 updatePaginationControls(data.total_pages, data.current_page);
-
-                // Show navbar and results container after search
                 document.getElementById('tabsNavbar').classList.remove('hidden');
                 document.getElementById('paginationControls').classList.remove('hidden');
                 document.getElementById('paginationControls').classList.add('flex');
-            } else {
-                alert(data.message || 'No results found.');
+                displayQueryTime(elapsedTime);
+            } else if (data.status === 'no_matches') {
+                displayNoMatchesMessage();
+                updatePaginationControls(0, 0); // Hide pagination for no matches
             }
         })
         .catch(error => {
@@ -62,6 +39,27 @@ function fetchResults(query, page) {
             alert('An error occurred. Please try again later.');
         });
 }
+function displayNoMatchesMessage() {
+    const documentsList = document.getElementById('documentsList');
+    const imagesGrid = document.getElementById('imagesGrid');
+
+    // Clear previous results
+    documentsList.innerHTML = '';
+    imagesGrid.innerHTML = '';
+
+    // Add a friendly no results message
+    documentsList.innerHTML = `
+        <li class="no-results-message">
+            <strong>Looks like there are no great matches for your query.</strong>
+            <p>Kindly check your spelling or try different keywords for better results.</p>
+        </li>
+    `;
+    imagesGrid.innerHTML = `
+        no images too
+    `;
+}
+
+
 
 // Tab switching for the navbar
 document.getElementById('documentsTab').addEventListener('click', function () {
@@ -91,6 +89,8 @@ function toggleTabs(activeTab) {
     }
 }
 
+
+
 function displayResults(results) {
     const documentsList = document.getElementById('documentsList');
     const imagesGrid = document.getElementById('imagesGrid');
@@ -100,7 +100,19 @@ function displayResults(results) {
     imagesGrid.innerHTML = '';
 
     if (!results || results.length === 0) {
-        documentsList.innerHTML = '<li>No results found</li>';
+        // Display a "No results found" message
+        documentsList.innerHTML = `
+            <li class="no-results-message">
+                <strong>No results found</strong>
+                <p>Try using different keywords or check your spelling.</p>
+            </li>
+        `;
+        imagesGrid.innerHTML = `
+            <div class="no-results-message">
+                <strong>No images found</strong>
+                <p>Try refining your search query for better results.</p>
+            </div>
+        `;
         return;
     }
 
@@ -133,6 +145,14 @@ function displayResults(results) {
     });
 }
 
+function displayQueryTime(elapsedTime) {
+    const queryTimeElement = document.getElementById('queryTime');
+
+    // Update the content to show the elapsed time
+    queryTimeElement.textContent = `Search completed in ${elapsedTime} seconds.`;
+    queryTimeElement.style.display = 'block'; // Ensure it's visible
+}
+
 function updatePaginationControls(totalPages, currentPage) {
     const pageInfo = document.getElementById('pageInfo');
     const prevPage = document.getElementById('prevPage');
@@ -162,30 +182,3 @@ document.getElementById('themeSwitcher').addEventListener('click', function () {
     this.textContent = isDark ? '🌞' : '🌙';
 });
 
-// Tab toggling
-// document.getElementById('documentsTab').addEventListener('click', function () {
-//     toggleTabs('documents');
-// });
-
-// document.getElementById('imagesTab').addEventListener('click', function () {
-//     toggleTabs('images');
-// });
-
-// function toggleTabs(activeTab) {
-//     const documentsList = document.getElementById('documentsList');
-//     const imagesGrid = document.getElementById('imagesGrid');
-//     const documentsTab = document.getElementById('documentsTab');
-//     const imagesTab = document.getElementById('imagesTab');
-
-//     if (activeTab === 'documents') {
-//         documentsList.style.display = 'block';
-//         imagesGrid.style.display = 'none';
-//         documentsTab.classList.add('active');
-//         imagesTab.classList.remove('active');
-//     } else {
-//         imagesGrid.style.display = 'grid';
-//         documentsList.style.display = 'none';
-//         imagesTab.classList.add('active');
-//         documentsTab.classList.remove('active');
-//     }
-// }

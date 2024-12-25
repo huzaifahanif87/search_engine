@@ -8,7 +8,7 @@ from math import log
 
 from Lexicon import Lexicon
 
-# Default factory function for defaultdict to avoid lambda pickling issues
+
 def default_forward_index():
     return {"words": [], "tf": defaultdict(int)}
 
@@ -19,25 +19,23 @@ class ForwardIndex:
         self.output_file = output_file
         self.chunk_size = chunk_size
         self.nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
-        self.lexicon = Lexicon(self.lexicon_file)  # Create Lexicon object
+        self.lexicon = Lexicon(self.lexicon_file)  
         self.lexicon.load_from_file()
 
     def process_chunk(self, chunk):
         print(f"Processing chunk with {len(chunk)} documents")
         """Process a chunk of documents to create a forward index."""
-        forward_index = defaultdict(default_forward_index)  # Use the function here instead of lambda
-        
-        # Column-specific weights
+        forward_index = defaultdict(default_forward_index)  
         column_weights = {
             "title": 4,  # Title column gets a weight of 3
-            "url": 3,    # URL column gets a weight of 2
+            "url": 3,    # URL column gets a weight of 3
             "description": 2,  # Description column gets a weight of 2
             "content": 1,  # Content column gets a weight of 1
             "full_content": 1,  # Full content column gets a weight of 1
         }
 
         for doc_id, row in chunk.iterrows():
-            for col in [ "url",  "description", "title","content", "full_content"]:  # Process columns of interest
+            for col in [ "url",  "description", "title","content", "full_content"]:  
                 if pd.notna(row[col]):
                     words = [token.lemma_ for token in self.nlp(row[col].lower()) if token.is_alpha]
                     weight = column_weights.get(col, 1)  # Get the weight based on the column, default is 1
