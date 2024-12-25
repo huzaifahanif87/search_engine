@@ -2,7 +2,7 @@ import pickle
 import os
 from collections import defaultdict
 from math import log
-from BackwardIndex import BackwardIndex
+from BackwardIndex import *
 
 
 
@@ -81,13 +81,57 @@ class BackwardIndexBarrelizer:
         if barrel_data:
             self.save_barrel(barrel_id, barrel_data)
 
+
+    def find_barrel_id(self, word_id):
+        """Find the barrel ID for a given word ID."""
+        return word_id // self.words_per_barrel
+
+    def load_barrel(self, barrel_id):
+        """Load a barrel from the pickle file."""
+        barrel_file = os.path.join(self.output_dir, f"backward_barrel_{barrel_id}.pkl")
+        if not os.path.exists(barrel_file):
+            return {}  # Return an empty dictionary if the barrel does not exist
+        with open(barrel_file, "rb") as f:
+            return pickle.load(f)
+    def update_barrels(self, updated_word_ids):
+        """Update barrels based on a list of updated word IDs."""
+        backward_index = self.load_backward_index()
+
+        # Group updated word IDs by their respective barrel IDs
+        barrel_updates = defaultdict(list)
+        for word_id in updated_word_ids:
+            barrel_id = self.find_barrel_id(word_id)
+            barrel_updates[barrel_id].append(word_id)
+
+        # Process each barrel
+        for barrel_id, word_ids in barrel_updates.items():
+            print(f"Updating barrel {barrel_id}...")
+
+            # Load the barrel, or create a new one if it doesn't exist
+            barrel_data = self.load_barrel(barrel_id)
+
+            # Update or add the word data in the barrel
+            for word_id in word_ids:
+                if word_id in backward_index:
+                    barrel_data[word_id] = backward_index[word_id]
+
+            # Save the updated barrel
+            self.save_barrel(barrel_id, barrel_data)
 if __name__ == "__main__":
     # Create a BackwardIndex instance (assuming the backward index is already created)
-    backward_indexer = BackwardIndex()
+    # backward_indexer = BackwardIndex()
 
-    # Step 1: Create backward index (from forward index)
-    backward_indexer.create_backward_index()
+    # # Step 1: Create backward index (from forward index)
+    # backward_indexer.create_backward_index()
 
-    # Step 2: Create barrels from the backward index
-    barrelizer = BackwardIndexBarrelizer(backward_index_file="indexes/backwardindex.pkl")
-    barrelizer.create_barrels()
+    # # Step 2: Create barrels from the backward index
+    # barrelizer = BackwardIndexBarrelizer(backward_index_file="indexes/backwardindex.pkl")
+    # barrelizer.create_barrels()
+
+    barrelizer = BackwardIndexBarrelizer()
+
+    # Assume these word IDs were updated in the backward index
+    updated_word_ids = [155426]  # Example word IDs
+
+    # Update the barrels with the updated word IDs
+    barrelizer.update_barrels(updated_word_ids)

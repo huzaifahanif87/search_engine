@@ -3,59 +3,137 @@ import pickle
 import os
 
 class DocumentID:
-    def __init__(self, document_file="data/documents.csv", output_file="data/documents_data.pkl"):
+    def __init__(self, document_file="data/sfiftyData.csv", output_file="data/documents_data.pkl"):
         self.document_file = document_file
         self.output_file = output_file
-        self.documents_data = {}  
 
-    def load_from_csv(self):
-        """Load document data (including title and description) from a CSV file and assign document IDs."""
+    def load_existing_data(self):
+        """Load existing document data from the pickle file."""
+        if os.path.exists(self.output_file):
+            with open(self.output_file, "rb") as f:
+                return pickle.load(f)
+        return {}
+
+    def load_new_data(self):
+        """Load new document data from the CSV file."""
         if not os.path.exists(self.document_file):
             raise FileNotFoundError(f"CSV file not found: {self.document_file}")
 
-
         df = pd.read_csv(self.document_file, encoding="ISO-8859-1")
 
-        # Iterate through each row and assign a document ID
-        for idx, row in df.iterrows():
-            doc_data = {
-                "url": row.get('url', ''),
-                "url_to_image": row.get('url_to_image', ''),
-                "published_at": row.get('published_at', ''),
-                "source_name": row.get('source_name', ''),
-                "title": row.get('title', ''),  
-                "description": row.get('description', ''),  
-            }
-            self.documents_data[idx] = doc_data  # Assign document ID starting from 0
+        # Validate and filter documents with essential fields only
+        valid_documents = []
+        for _, row in df.iterrows():
+            if not pd.isnull(row.get("url")):
+                valid_documents.append({
+                    "url": row.get("url", ""),
+                    "url_to_image": row.get("url_to_image", ""),
+                    "published_at": row.get("published_at", ""),
+                    "source_name": row.get("source_name", ""),
+                    "title": row.get("title", ""),
+                    "description": row.get("description", ""),
+                })
+        return valid_documents
 
-    def save_to_pickle(self):
-        """Save the documents data to a pickle file."""
+    def update_document_data(self):
+        """Update the document data by appending new data and saving it back to the pickle file."""
+        # Load existing and new data
+        existing_data = self.load_existing_data()
+        new_data = self.load_new_data()
+
+        # Find the starting document ID for new data
+        start_id = max(existing_data.keys(), default=-1) + 1
+
+        # Append new data to the existing dictionary
+        new_entries = {}
+        for idx, document in enumerate(new_data):
+            doc_id = start_id + idx
+            new_entries[doc_id] = document
+
+        if not new_entries:
+            print("No valid new documents to add.")
+            return
+
+        # Combine existing and new data
+        updated_data = {**existing_data, **new_entries}
+
+        # Save the updated data back to the pickle file
         with open(self.output_file, "wb") as f:
-            pickle.dump(self.documents_data, f)
-        print(f"Document data saved to {self.output_file}")
+            pickle.dump(updated_data, f)
 
-    def generate_document_data(self):
-        """Generate the document data by loading from CSV and saving to pickle."""
-        self.load_from_csv()
-        self.save_to_pickle()
-
-    def get_document_data(self, doc_id):
-        """Get the details of a document by its ID."""
-        return self.documents_data.get(doc_id, None)
-
-
+        # Print the newly added documents
+        print("Newly added documents:")
+        for doc_id, document in new_entries.items():
+            print(f"Document ID {doc_id}: {document}")
 
 if __name__ == "__main__":
+    document_id_instance = DocumentID(
+        document_file="data/sfiftydata.csv", 
+        output_file="data/documents_data.pkl"
+    )
 
-    document_id_instance = DocumentID(document_file="data/sfiftydata.csv")  # Update whatever CSV path
-
-    # Generate and save document data
-    document_id_instance.generate_document_data()
+    # Update the document data
+    document_id_instance.update_document_data()
 
 
-    doc_id = 1  # only for testing
-    doc_data = document_id_instance.get_document_data(doc_id)
-    if doc_data:
-        print(f"Document ID {doc_id} details: {doc_data}")
-    else:
-        print(f"Document ID {doc_id} not found.")
+# import pandas as pd
+# import pickle
+# import os
+
+# class DocumentID:
+#     def __init__(self, document_file="data/documents.csv", output_file="data/documents_data.pkl"):
+#         self.document_file = document_file
+#         self.output_file = output_file
+#         self.documents_data = {}  
+
+#     def load_from_csv(self):
+#         """Load document data (including title and description) from a CSV file and assign document IDs."""
+#         if not os.path.exists(self.document_file):
+#             raise FileNotFoundError(f"CSV file not found: {self.document_file}")
+
+
+#         df = pd.read_csv(self.document_file, encoding="ISO-8859-1")
+
+#         # Iterate through each row and assign a document ID
+#         for idx, row in df.iterrows():
+#             doc_data = {
+#                 "url": row.get('url', ''),
+#                 "url_to_image": row.get('url_to_image', ''),
+#                 "published_at": row.get('published_at', ''),
+#                 "source_name": row.get('source_name', ''),
+#                 "title": row.get('title', ''),  
+#                 "description": row.get('description', ''),  
+#             }
+#             self.documents_data[idx] = doc_data  # Assign document ID starting from 0
+
+#     def save_to_pickle(self):
+#         """Save the documents data to a pickle file."""
+#         with open(self.output_file, "wb") as f:
+#             pickle.dump(self.documents_data, f)
+#         print(f"Document data saved to {self.output_file}")
+
+#     def generate_document_data(self):
+#         """Generate the document data by loading from CSV and saving to pickle."""
+#         self.load_from_csv()
+#         self.save_to_pickle()
+
+#     def get_document_data(self, doc_id):
+#         """Get the details of a document by its ID."""
+#         return self.documents_data.get(doc_id, None)
+
+
+
+# if __name__ == "__main__":
+
+#     document_id_instance = DocumentID(document_file="data/sfiftydata.csv")  # Update whatever CSV path
+
+#     # Generate and save document data
+#     document_id_instance.generate_document_data()
+
+
+#     doc_id = 1  # only for testing
+#     doc_data = document_id_instance.get_document_data(doc_id)
+#     if doc_data:
+#         print(f"Document ID {doc_id} details: {doc_data}")
+#     else:
+#         print(f"Document ID {doc_id} not found.")

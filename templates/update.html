@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload CSV File</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0-alpha1/css/bootstrap.min.css">
+</head>
+<body>
+
+<div class="container mt-5">
+    <h2>Upload CSV File</h2>
+    <p>Please select a CSV file to update the lexicon and indices:</p>
+
+    <!-- Form for uploading CSV file -->
+    <form id="upload-form" action="/update_data" method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="csv_file" class="form-label">Choose CSV File</label>
+            <input type="file" class="form-control" id="csv_file" name="csv_file" accept=".csv" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </form>
+
+    <!-- Status message -->
+    <div id="status-message" class="mt-3"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0-alpha1/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // Handle form submission
+    $('#upload-form').on('submit', function(event) {
+        event.preventDefault();  // Prevent the form from submitting the traditional way
+
+        // Clear previous status message
+        $('#status-message').empty();
+
+        // Create a FormData object to send the CSV file
+        var formData = new FormData(this);
+
+        // Send the form data to the server using AJAX
+        $.ajax({
+            url: '/update_data',
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function(response) {
+                // Display success or error message based on the response
+                if (response.status === 'success') {
+                    $('#status-message').html('<div class="alert alert-success">' + response.message + '</div>');
+                } else {
+                    $('#status-message').html('<div class="alert alert-danger">' + response.message + '</div>');
+                }
+            },
+            error: function() {
+                $('#status-message').html('<div class="alert alert-danger">An error occurred while uploading the file. Please try again.</div>');
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
