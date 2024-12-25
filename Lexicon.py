@@ -98,7 +98,7 @@ def process_csv_to_lexicon(csv_file, lexicon, columns, chunk_size=10000):
 
 if __name__ == "__main__":
     # Path to the CSV file
-    csv_file = r"data/sfiftydata.csv"  # Update the path to your dataset
+    csv_file = r"data/sfiftydata.csv"  
 
     # Columns to process
     columns_to_process = ["full_content", "content", "title","description","url"]  # Make sure the 'title' column is properly quoted
