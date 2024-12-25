@@ -1,6 +1,4 @@
 
-
-
 import pickle
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
@@ -23,13 +21,11 @@ def process_chunk(chunk):
     partial_backward_index = defaultdict(default_word_dict)
 
     for doc_id, data in chunk.items():
-        words = data["words"]  # List of tuples (word_id, position)
-        tf = data["tf"]  # Dictionary of {word_id: term_frequency}
+        words = data["words"]  
+        tf = data["tf"]  
 
         for word_id, position in words:
-            # Update positions
             partial_backward_index[word_id][doc_id]["positions"].append(position)
-            # Update term frequency
             partial_backward_index[word_id][doc_id]["tf"] = tf[word_id]
 
     return partial_backward_index
@@ -53,44 +49,33 @@ class BackwardIndex:
         """
         for partial_index in indexes:
             for word_id, doc_data in partial_index.items():
-                # Ensure backward_index[word_id] is a defaultdict for doc_id -> {positions, tf}
+
                 if word_id not in self.backward_index:
                     self.backward_index[word_id] = default_word_dict()
 
                 for doc_id, details in doc_data.items():
-                    # Ensure doc_id exists in the backward index for word_id
+
                     if doc_id not in self.backward_index[word_id]:
-                        # Initialize with positions and tf
+
                         self.backward_index[word_id][doc_id] = default_doc_dict()
 
-                    # Merge positions and tf values
                     self.backward_index[word_id][doc_id]["positions"].extend(details["positions"])
                     self.backward_index[word_id][doc_id]["tf"] += details["tf"]
         self.backward_index = dict(sorted(self.backward_index.items()))
 
     def create_backward_index(self, chunk_size=1000):
-        """
-        Create a backward index using multi-threading.
-        """
-        # Load the forward index
         self.load_forward_index()
-
-        # Convert the forward index into chunks for parallel processing
         forward_index_items = list(self.forward_index.items())
         chunks = [
             dict(forward_index_items[i : i + chunk_size])
             for i in range(0, len(forward_index_items), chunk_size)
         ]
-
-        # Process chunks in parallel
         with ProcessPoolExecutor() as executor:
             futures = [executor.submit(process_chunk, chunk) for chunk in chunks]
             backward_indexes = [future.result() for future in futures]
 
-        # Merge all partial backward indexes
         self.merge_backward_indexes(backward_indexes)
 
-        # Save the backward index
         self.save_backward_index()
 
     def save_backward_index(self):
@@ -113,11 +98,11 @@ class BackwardIndex:
                 print(f"\tDocument ID: {doc_id}")
                 print(f"\t\tPositions: {details['positions']}")
                 print(f"\t\tTerm Frequency (TF): {details['tf']}")
-            print("-" * 40)  # Separator for readability
+            print("-" * 40)  
 
 
 if __name__ == "__main__":
-    # Create a BackwardIndex instance
+
     backward_indexer = BackwardIndex()
     
     # Create the backward index from forward index

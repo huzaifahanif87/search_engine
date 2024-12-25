@@ -32,7 +32,7 @@ class BackwardIndexBarrelizer:
 
     def calculate_tfidf(self, backward_index):
         """Calculate TF-IDF for all words in the backward index."""
-        doc_count = sum(len(doc_data) for doc_data in backward_index.values())  # Total number of docs
+        doc_count = sum(len(doc_data) for doc_data in backward_index.values())  
         word_doc_frequency = defaultdict(int)
 
         # Step 1: Calculate document frequency (DF) for each word
@@ -81,7 +81,6 @@ class BackwardIndexBarrelizer:
         if barrel_data:
             self.save_barrel(barrel_id, barrel_data)
 
-# Usage
 if __name__ == "__main__":
     # Create a BackwardIndex instance (assuming the backward index is already created)
     backward_indexer = BackwardIndex()
