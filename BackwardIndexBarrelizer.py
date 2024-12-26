@@ -117,7 +117,9 @@ class BackwardIndexBarrelizer:
 
             # Save the updated barrel
             self.save_barrel(barrel_id, barrel_data)
-if __name__ == "__main__":
+
+            
+# if __name__ == "__main__":
     # Create a BackwardIndex instance (assuming the backward index is already created)
     # backward_indexer = BackwardIndex()
 
@@ -128,10 +130,36 @@ if __name__ == "__main__":
     # barrelizer = BackwardIndexBarrelizer(backward_index_file="indexes/backwardindex.pkl")
     # barrelizer.create_barrels()
 
-    barrelizer = BackwardIndexBarrelizer()
+    # lexicon = Lexicon("data/lexicon.txt")
+    # lexicon.load_from_file()
+    # forward_index = ForwardIndex("data/sampleData.csv", lexicon, "indexes/forwardindex.pkl")
+    # last_doc_id_before=forward_index._get_last_document_id()
+    # print("doc id before ",last_doc_id_before)
+    # forward_index.update_forward_index()
 
-    # Assume these word IDs were updated in the backward index
-    updated_word_ids = [155426]  # Example word IDs
+    # print("Forward index updated successfully!")
 
-    # Update the barrels with the updated word IDs
-    barrelizer.update_barrels(updated_word_ids)
+    #         # 3. Compare the lengths of forward index and document data
+    #         # Get the existing number of documents
+            
+    # last_doc_id_now=forward_index._get_last_document_id()
+    # print(" doc id after ",last_doc_id_now)
+            
+    #         # Determine updated document IDs (new documents)
+    # updated_doc_ids = []
+    # if last_doc_id_now > last_doc_id_before:
+    #     # Find the missing document IDs
+    #     for doc_id in range(last_doc_id_before+1, last_doc_id_now+1):
+    #         updated_doc_ids.append(doc_id)
+
+    # updated_word_ids = forward_index.get_unique_word_ids(updated_doc_ids)
+    # print(f"Updated document IDs: {updated_doc_ids}")
+    # print(f"Updated document IDs: {updated_word_ids}")
+
+    #         # 4. Update the backward index with the updated document IDs
+    # backward_index = BackwardIndex()
+    # backward_index.update_backward_index(updated_doc_ids)
+    # barrelizer = BackwardIndexBarrelizer()
+
+    #         # Update the barrels with the updated word IDs
+    # barrelizer.update_barrels(updated_word_ids)

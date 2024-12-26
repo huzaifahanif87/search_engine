@@ -8,11 +8,21 @@ from query_processor import QueryProcessor
 from Lexicon import *
 from RankingSystem import RankingSystem
 from ForwardIndex import ForwardIndex
+
 from BackwardIndex import BackwardIndex
 import os
 import math
 import time
 import json
+from concurrent.futures import ThreadPoolExecutor
+import logging
+
+# Set up logging
+logging.basicConfig(filename='app.log', level=logging.INFO, 
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Thread pool for handling background tasks
+executor = ThreadPoolExecutor(max_workers=3)
 class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
@@ -96,75 +106,144 @@ def search():
 @app.route('/update_data', methods=['POST'])
 def update_data():
     """Handle CSV file upload, process it, and update the lexicon and indices."""
-    if 'csv_file' not in request.files:
-        return jsonify({'status': 'error', 'message': 'No file part'})
+    try:
+        if 'csv_file' not in request.files:
+            return jsonify({'status': 'error', 'message': 'No file part'})
 
-    file = request.files['csv_file']
-    if file.filename == '':
-        return jsonify({'status': 'error', 'message': 'No selected file'})
+        file = request.files['csv_file']
+        if file.filename == '':
+            return jsonify({'status': 'error', 'message': 'No selected file'})
 
-    if file and file.filename.endswith('.csv'):
-        # Save uploaded file temporarily
-        csv_path = os.path.join('uploads', file.filename)
-        file.save(csv_path)
+        if file and file.filename.endswith('.csv'):
+            # Save the uploaded file temporarily
+            csv_path = os.path.join('uploads', file.filename)
+            file.save(csv_path)
+            logging.info("CSV file uploaded successfully: %s", csv_path)
 
-        # Update lexicon, forward index, and backward index
-        try:
-            # 1. Update lexicon with new words from CSV using the update function in Lexicon class
-            update_lexicon(csv_path, lexicon)
-            lexicon.load_from_file()
+            # Submit update task to the thread pool
+            future = executor.submit(process_update_task, csv_path)
+            return jsonify({'status': 'success', 'message': 'Update process started in the background. Check logs for progress.'})
 
-            # 2. Update the forward index with the new CSV data
-            forward_index = ForwardIndex(csv_path, lexicon, "indexes/forwardindex.pkl")
-            last_doc_id_before=forward_index._get_last_document_id()
-            forward_index.update_forward_index()
+        return jsonify({'status': 'error', 'message': 'Invalid file format'})
+    except Exception as e:
+        logging.error("Error in update_data: %s", str(e))
+        return jsonify({'status': 'error', 'message': str(e)})
 
-            print("Forward index updated successfully!")
+# def process_update_task(csv_path):
+#     """Background task to process updates."""
+#     try:
+#         logging.info("Starting update process...")
 
-            # 3. Compare the lengths of forward index and document data
-            # Get the existing number of documents
-            
-            last_doc_id_now=forward_index._get_last_document_id()
-            
-            # Determine updated document IDs (new documents)
-            updated_doc_ids = []
-            if last_doc_id_now > last_doc_id_before:
-                # Find the missing document IDs
-                for doc_id in range(last_doc_id_before, last_doc_id_now):
-                    updated_doc_ids.append(doc_id)
+#         # Step 1: Update lexicon
+#         update_lexicon(csv_path, lexicon)
+#         lexicon.load_from_file()
+#         logging.info("Lexicon updated successfully.")
 
-            updated_word_ids = forward_index.get_unique_word_ids(updated_doc_ids)
-            # 4. Update the backward index with the updated document IDs
-            backward_index = BackwardIndex()
-            backward_index.update_backward_index(updated_doc_ids)
+#         # Step 2: Update forward index
+#         forward_index = ForwardIndex("data/sampleData.csv", lexicon, "indexes/forwardindex.pkl")
+#         last_doc_id_before = forward_index._get_last_document_id()
+#         logging.info("Last document ID before update: %d", last_doc_id_before)
+        
+#         forward_index.update_forward_index()
+#         logging.info("Forward index updated successfully.")
+
+#         # Step 3: Determine updated document IDs
+#         last_doc_id_now = forward_index._get_last_document_id()
+#         logging.info("Last document ID after update: %d", last_doc_id_now)
+
+#         updated_doc_ids = list(range(last_doc_id_before + 1, last_doc_id_now + 1)) if last_doc_id_now > last_doc_id_before else []
+#         logging.info("Updated document IDs: %s", updated_doc_ids)
+
+#         updated_word_ids = forward_index.get_unique_word_ids(updated_doc_ids)
+#         logging.info("Updated word IDs: %s", updated_word_ids)
+
+#         # Step 4: Update backward index
+#         backward_index = BackwardIndex()
+#         backward_index.update_backward_index(updated_doc_ids)
+#         logging.info("Backward index updated successfully.")
+
+#         # Step 5: Update backward index barrels
+#         barrelizer = BackwardIndexBarrelizer()
+#         barrelizer.update_barrels(updated_word_ids)
+#         logging.info("Backward index barrels updated successfully.")
+
+#         # Step 6: Update document data
+#         document_id_instance = DocumentID(
+#             document_file=csv_path,
+#             output_file="data/documents_data.pkl"
+#         )
+#         document_id_instance.update_document_data()
+#         logging.info("Document data updated successfully.")
 
 
-            barrelizer = BackwardIndexBarrelizer()
+#         logging.info("Update process completed successfully.")
+#     except Exception as e:
+#         logging.error("Error during update process: %s", str(e))
 
-            # Update the barrels with the updated word IDs
-            barrelizer.update_barrels(updated_word_ids)
+def process_update_task(csv_path):
+    """Background task to process updates."""
+    global query_processor, ranker  # Ensure we can update these objects globally
+    try:
+        logging.info("Starting update process...")
 
-            document_id_instance = DocumentID(
-                document_file=csv_path, 
-                output_file="data/documents_data.pkl"
-            )
+        # Step 1: Update lexicon
+        update_lexicon(csv_path, lexicon)
+        lexicon.load_from_file()
+        logging.info("Lexicon updated successfully.")
 
-            # Update the document data
-            document_id_instance.update_document_data()
+        # Step 2: Update forward index
+        forward_index = ForwardIndex("data/sampleData.csv", lexicon, "indexes/forwardindex.pkl")
+        last_doc_id_before = forward_index._get_last_document_id()
+        logging.info("Last document ID before update: %d", last_doc_id_before)
+        
+        forward_index.update_forward_index()
+        logging.info("Forward index updated successfully.")
 
-            return jsonify({'status': 'success', 'message': 'Lexicon and indices updated successfully!'})
+        # Step 3: Determine updated document IDs
+        last_doc_id_now = forward_index._get_last_document_id()
+        logging.info("Last document ID after update: %d", last_doc_id_now)
 
-        except Exception as e:
-            return jsonify({'status': 'error', 'message': str(e)})
+        updated_doc_ids = list(range(last_doc_id_before + 1, last_doc_id_now + 1)) if last_doc_id_now > last_doc_id_before else []
+        logging.info("Updated document IDs: %s", updated_doc_ids)
 
-    return jsonify({'status': 'error', 'message': 'Invalid file format'})
+        updated_word_ids = forward_index.get_unique_word_ids(updated_doc_ids)
+        logging.info("Updated word IDs: %s", updated_word_ids)
+
+        # Step 4: Update backward index
+        backward_index = BackwardIndex()
+        backward_index.update_backward_index(updated_doc_ids)
+        logging.info("Backward index updated successfully.")
+
+        # Step 5: Update backward index barrels
+        barrelizer = BackwardIndexBarrelizer()
+        barrelizer.update_barrels(updated_word_ids)
+        logging.info("Backward index barrels updated successfully.")
+
+        # Step 6: Update document data
+        document_id_instance = DocumentID(
+            document_file=csv_path,
+            output_file="data/documents_data.pkl"
+        )
+        document_id_instance.update_document_data()
+        logging.info("Document data updated successfully.")
+
+        # Step 7: Reinitialize QueryProcessor and RankingSystem
+        query_processor = QueryProcessor(lexicon)
+        ranker = RankingSystem("backward_barrels", lexicon, "data/documents_data.pkl")
+        logging.info("QueryProcessor and RankingSystem updated successfully.")
+
+        logging.info("Update process completed successfully.")
+    except Exception as e:
+        logging.error("Error during update process: %s", str(e))
+
 
 @app.route('/update')
 def update():
     return render_template('update.html')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)
+
 
 
 

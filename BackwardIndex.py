@@ -1,8 +1,10 @@
 import pickle
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
-from ForwardIndex import default_forward_index  # Import the function from the ForwardIndex module
+from ForwardIndex import ForwardIndex, default_forward_index  # Import the function from the ForwardIndex module
 from concurrent.futures import ThreadPoolExecutor
+
+from Lexicon import Lexicon
 
 def default_doc_dict():
     """Default dictionary structure for backward index."""
@@ -71,7 +73,7 @@ class BackwardIndex:
 
         self.backward_index = dict(sorted(self.backward_index.items()))
 
-    def update_backward_index(self, updated_word_ids):
+    def update_backward_index(self, updated_doc_ids):
         """Update the backward index with the given updated document IDs."""
         self.load_forward_index() # Load the forward index
         self.load_backward_index()  # Load the existing backward index
@@ -119,14 +121,39 @@ class BackwardIndex:
 
 if __name__ == "__main__":
     # Initialize the BackwardIndex
-    backward_indexer = BackwardIndex()
+    lexicon = Lexicon("data/lexicon.txt")
+    lexicon.load_from_file()
+    forward_index = ForwardIndex("data/sampleData.csv", lexicon, "indexes/forwardindex.pkl")
+    last_doc_id_before=forward_index._get_last_document_id()
+    print("doc id before ",last_doc_id_before)
+    forward_index.update_forward_index()
 
-    # List of document IDs that were updated in the forward index
-    updated_doc_ids = [50001]  # Example: Document IDs that were updated
+    print("Forward index updated successfully!")
 
-    # Update the backward index based on the updated forward index documents
-    backward_indexer.update_backward_index(updated_doc_ids)
+            # 3. Compare the lengths of forward index and document data
+            # Get the existing number of documents
+            
+    last_doc_id_now=forward_index._get_last_document_id()
+    print(" doc id after ",last_doc_id_now)
+            
+            # Determine updated document IDs (new documents)
+    updated_doc_ids = []
+    if last_doc_id_now > last_doc_id_before:
+        # Find the missing document IDs
+        for doc_id in range(last_doc_id_before+1, last_doc_id_now+1):
+            updated_doc_ids.append(doc_id)
 
+    updated_word_ids = forward_index.get_unique_word_ids(updated_doc_ids)
+    print(f"Updated document IDs: {updated_doc_ids}")
+    print(f"Updated document IDs: {updated_word_ids}")
+
+            # 4. Update the backward index with the updated document IDs
+    backward_index = BackwardIndex()
+    backward_index.update_backward_index(updated_doc_ids)
+    # barrelizer = BackwardIndexBarrelizer()
+
+            # Update the barrels with the updated word IDs
+    # barrelizer.update_barrels(updated_word_ids)
     # Optionally load and print the updated backward index
     # backward_indexer.load_backward_index()
     # backward_indexer.print_backward_index()

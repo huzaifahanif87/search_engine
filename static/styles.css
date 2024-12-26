@@ -1,4 +1,51 @@
+.images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsive columns */
+    grid-auto-rows: 230px; /* Base height for rows */
+    gap: 15px; /* Space between columns */
+    margin: 20px;
+    padding: 10px;
+}
 
+.image-item {
+    background: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.image-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Adjust height for large items */
+.image-item.large {
+    grid-row: span 2; /* Span 2 rows for larger items */
+    grid-column: span 2;
+}
+
+.image-item span {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #555;
+}
+
+/* Alternating colors for better visibility */
+.image-item:nth-child(odd) {
+    background-color: #fbeec1;
+}
+
+.image-item:nth-child(even) {
+    background-color: #c1e1c5;
+}
+
+/* Dark Theme Variables */
 :root {
     --primary-color: #007bff;
     --primary-hover: #0056b3;
@@ -7,6 +54,7 @@
     --text-light: #fff;
     --text-dark: #333;
 }
+
 .search-container img {
     max-width: 100%;
     height: auto;
@@ -14,6 +62,7 @@
     margin: 20px auto;
 }
 
+/* Dark Theme */
 .dark-theme {
     background-color: var(--background-dark);
     color: var(--text-light);
@@ -24,17 +73,17 @@
 .dark-theme .image-item p,
 .dark-theme #searchInput,
 .dark-theme #searchBtn {
-    color: var(--text-dark); 
+    color: var(--text-dark);
 }
 
 .dark-theme .results-list li {
     background-color: var(--text-dark); /* Darken background for contrast */
 }
 
-
 .dark-theme a {
     color: var(--text-light);
 }
+
 .dark-theme .results-list li {
     background-color: #333; /* Dark background for list items */
     color: var(--text-light); /* Light text for readability */
@@ -43,6 +92,7 @@
 .dark-theme .results-list li a {
     color: var(--text-light); /* Ensure links are light */
 }
+
 .dark-theme .images-grid{
     background-color: #222;
 }
@@ -73,6 +123,7 @@
     background-color: #222; /* Dark background behind the image */
 }
 
+/* Body styling for light theme */
 body {
     font-family: 'Roboto', Arial, sans-serif;
     background-color: var(--background-light);
@@ -94,6 +145,7 @@ h1 {
     align-items: center;
     margin-top: 50px;
 }
+
 .dark-theme #searchInput{
     background-color: #26161c;
     color: #c1e1e2;
@@ -108,25 +160,30 @@ h1 {
     font-size: 18px;
     transition: width 0.3s ease, border-color 0.3s ease;
 }
+
 #searchInput:hover {
     outline: none;
     border-color: var(--primary-color);
     width: 400px;
 }
+
 #searchInput:focus {
     outline: none;
     border-color: var(--primary-color);
     width: 400px;
 }
 
+/* Tab Container Styles */
 .tabs-container {
     display: flex;
     justify-content: center;
     margin: 20px 0;
 }
+
 .dark-theme .tab{
     background-color: #ced9e5;
 }
+
 .tab {
     padding: 10px;
     cursor: pointer;
@@ -147,7 +204,7 @@ h1 {
     background-color: #e0e0e0;
 }
 
-
+/* Results and Images Grid Styles */
 .results-list, .images-grid {
     margin-top: 20px;
 }
@@ -157,6 +214,7 @@ h1 {
     background-color: #8ec2fa;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
+
 .hidden {
     display: none;
 }
@@ -177,7 +235,7 @@ h1 {
     text-decoration: underline;
 }
 
-
+/* Pagination and Button Styles */
 .theme-switcher {
     position: absolute;
     top: 20px;
@@ -191,28 +249,23 @@ h1 {
     background-color: var(--background-dark);
     color: var(--text-light);
 }
+
 .images-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 15px;
+    column-count: 4; /* Number of columns */
+    column-gap: 15px; /* Spacing between columns */
     margin-top: 20px;
     padding: 10px;
-    background-color: #c1e1e2;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .image-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+    display: inline-block;
     background: #fff;
-    padding: 10px;
+    margin-bottom: 15px; 
     border-radius: 8px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
+    break-inside: avoid;
+} 
 
 .image-item img {
     max-width: 100%;
@@ -227,6 +280,7 @@ h1 {
     transform: scale(1.05);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
+
 .image-item a {
     display: block;
     text-decoration: none;
@@ -243,17 +297,25 @@ h1 {
     font-size: 14px;
     color: #333;
     margin: 0;
+    max-height: 40px; /* Limit the height of the text */
+    overflow: hidden; /* Hide overflowing text */
+    text-overflow: ellipsis; /* Add ellipsis (...) for long text */
+    white-space: nowrap; /* Ensure text stays on one line */
+    word-wrap: break-word; /* Break long words if necessary */
 }
+
+
 #searchResultsContainer {
     width: 80%;
     margin: 0 auto;
     padding: 20px;
 }
-.flex{
+
+.flex {
     display: flex;
 }
+
 #paginationControls {
-    /* display: flex; */
     justify-content: center;
     align-items: center;
     margin-top: 20px;
@@ -275,7 +337,7 @@ button:hover {
 
 #pageInfo {
     font-size: 18px;
-} 
+}
 
 /* Navbar styles */
 .navbar {
@@ -317,6 +379,4 @@ button:hover {
     margin: 20px 0;
     padding: 10px;
     border: 1px solid #ddd;
-    background-color: #f9f9f9;
-    border-radius: 5px;
 }
