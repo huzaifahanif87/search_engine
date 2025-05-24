@@ -31,36 +31,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0-alpha1/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        // Handle form submission
-        // $('#upload-form').on('submit', function(event) {
-        //     event.preventDefault();  // Prevent the form from submitting the traditional way
-
-        //     // Clear previous status message
-        //     $('#status-message').empty();
-
-        //     // Create a FormData object to send the CSV file
-        //     var formData = new FormData(this);
-
-        //     // Send the form data to the server using AJAX
-        //     $.ajax({
-        //         url: '/update_data',
-        //         type: 'POST',
-        //         data: formData,
-        //         contentType: false,
-        //         processData: false,
-        //         success: function(response) {
-        //             // Display success or error message based on the response
-        //             if (response.status === 'success') {
-        //                 $('#status-message').html('<div class="alert alert-success">' + response.message + '</div>');
-        //             } else {
-        //                 $('#status-message').html('<div class="alert alert-danger">' + response.message + '</div>');
-        //             }
-        //         },
-        //         error: function() {
-        //             $('#status-message').html('<div class="alert alert-danger">An error occurred while uploading the file. Please try again.</div>');
-        //         }
-        //     });
-        // });
 
         $('#upload-form').on('submit', function (event) {
             event.preventDefault(); // Prevent default form submission
