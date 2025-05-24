@@ -154,59 +154,6 @@ function displayResults(results) {
 }
 
 
-// function displayResults(results) {
-//     const documentsList = document.getElementById('documentsList');
-//     const imagesGrid = document.getElementById('imagesGrid');
-
-//     // Clear previous results
-//     documentsList.innerHTML = '';
-//     imagesGrid.innerHTML = '';
-
-//     if (!results || results.length === 0) {
-//         // Display a "No results found" message
-//         documentsList.innerHTML = `
-//             <li class="no-results-message">
-//                 <strong>No results found</strong>
-//                 <p>Try using different keywords or check your spelling.</p>
-//             </li>
-//         `;
-//         imagesGrid.innerHTML = `
-//             <div class="no-results-message">
-//                 <strong>No images found</strong>
-//                 <p>Try refining your search query for better results.</p>
-//             </div>
-//         `;
-//         return;
-//     }
-
-//     results.forEach(result => {
-//         const { title, url, description, source, image_url } = result.details;
-
-//         // Document results
-//         if (title) {
-//             const li = document.createElement('li');
-//             li.innerHTML = `
-//                 <strong><a href="${url}" target="_blank">${title}</a></strong>
-//                 <br>${description || 'No description available'}
-//                 <br><small>Source: ${source || 'Unknown'}</small>
-//             `;
-//             documentsList.appendChild(li);
-//         }
-
-//         // Image results
-//         if (image_url) {
-//             const imgDiv = document.createElement('div');
-//             imgDiv.classList.add('image-item');
-//             imgDiv.innerHTML = `
-//                 <a href="${url || '#'}" target="_blank" style="text-decoration: none; color: inherit;">
-//                     <img src="${image_url}" alt="${title}" title="${title}">
-//                     <p>${title || 'Untitled'}</p>
-//                 </a>
-//             `;
-//             imagesGrid.appendChild(imgDiv);
-//         }
-//     });
-// }
 
 function displayQueryTime(elapsedTime) {
     const queryTimeElement = document.getElementById('queryTime');
